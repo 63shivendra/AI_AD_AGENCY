@@ -1,0 +1,178 @@
+// Growth Engine — data model
+// Dev: SQLite. Prod: switch provider to "postgresql" and point DATABASE_URL at Supabase.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  niche           String
+  area            String
+  city            String   @default("Kanpur")
+  phone           String
+  hours           String? // e.g. "10 AM – 8 PM", shown on the public funnel
+  address         String
+  mapUrl          String?
+  googleReviewUrl String?
+  brandColor      String   @default("#C8F751")
+  emoji           String   @default("🏪")
+  status          String   @default("ACTIVE") // ACTIVE | PAUSED | PROSPECT | CHURNED
+  plan            String   @default("LOCAL") // LOCAL | GROWTH | SCALE | AGENCY
+  monthlyFee      Int      @default(9999)
+  setupFee        Int      @default(4999)
+  contactName     String?
+  notes           String?
+  proof           String? // grounded trust line the owner can verify (never invented numbers)
+  health          Int      @default(80)
+  createdAt       DateTime @default(now())
+
+  offers  Offer[]
+  ads     Ad[]
+  leads   Lead[]
+  reviews Review[]
+  metrics MetricDaily[]
+  jobs    Job[]
+  events  Event[]
+
+  @@index([status])
+}
+
+model Offer {
+  id          String  @id @default(cuid())
+  clientId    String
+  client      Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  tag         String?
+  price       String?
+  isPrimary   Boolean @default(false)
+  sort        Int     @default(0)
+
+  @@index([clientId])
+}
+
+model Ad {
+  id            String    @id @default(cuid())
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title         String
+  hook          String
+  script        String    @default("{}") // JSON: { scenes: [{label, text, sub}] }
+  platform      String    @default("META") // META | TIKTOK | YOUTUBE
+  format        String    @default("REEL")
+  status        String    @default("READY") // DRAFT | RENDERING | READY | PUBLISHED | PAUSED | FATIGUED
+  hitScore      Int       @default(70)
+  predictedCtr  Float     @default(1.8)
+  predictedRoas Float     @default(2.4)
+  durationSec   Int       @default(12)
+  videoUrl      String?
+  posterUrl     String?
+  thumbTone     String    @default("lime")
+  views         Int       @default(0)
+  clicks        Int       @default(0)
+  leads         Int       @default(0)
+  spend         Int       @default(0)
+  revenue       Int       @default(0)
+  createdAt     DateTime  @default(now())
+  publishedAt   DateTime?
+
+  variants AdVariant[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model AdVariant {
+  id       String  @id @default(cuid())
+  adId     String
+  ad       Ad      @relation(fields: [adId], references: [id], onDelete: Cascade)
+  label    String
+  hookText String
+  cta      String
+  score    Int
+  isWinner Boolean @default(false)
+  status   String  @default("READY")
+
+  @@index([adId])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  intent    String?
+  source    String   @default("WHATSAPP") // WHATSAPP | CALL | FORM | WALKIN
+  status    String   @default("NEW") // NEW | CONTACTED | WON | LOST
+  value     Int      @default(0)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([createdAt])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  clientId   String
+  client     Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  customer   String
+  rating     Int      @default(5)
+  tags       String   @default("[]")
+  text       String
+  status     String   @default("GENERATED") // GENERATED | POSTED
+  createdAt  DateTime @default(now())
+
+  @@index([clientId])
+}
+
+model MetricDaily {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  date        DateTime
+  spend       Int      @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  leads       Int      @default(0)
+  revenue     Int      @default(0)
+
+  @@unique([clientId, date])
+  @@index([date])
+}
+
+model Job {
+  id         String    @id @default(cuid())
+  clientId   String?
+  client     Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  type       String // RENDER | PUBLISH | SCRAPE | REPORT
+  status     String    @default("QUEUED") // QUEUED | RUNNING | DONE | FAILED
+  progress   Int       @default(0)
+  payload    String    @default("{}")
+  result     String?
+  error      String?
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([status])
+}
+
+model Event {
+  id        String   @id @default(cuid())
+  clientId  String?
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  type      String // LEAD | REVIEW | AD | RENDER | ALERT | SYSTEM
+  title     String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
