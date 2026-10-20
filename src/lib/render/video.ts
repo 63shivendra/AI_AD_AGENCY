@@ -94,7 +94,6 @@ function esc(input: string) {
     .replace(/\\/g, "\\\\")
     .replace(/:/g, "\\:")
     .replace(/'/g, "")
-    .replace(/%/g, "\\%")
     .replace(/,/g, "\\,")
     .replace(/\[/g, "\\[")
     .replace(/\]/g, "\\]");
@@ -162,7 +161,7 @@ function drawText(opts: {
   const font = opts.bold === false ? REG_FONT : BOLD_FONT;
   const alpha = opts.alpha ?? 1;
   const enable = opts.enable ? `:enable='${opts.enable}'` : "";
-  return `drawtext=${fontArg(font)}:text='${esc(opts.text)}':x=${opts.x}:y=${opts.y}:fontsize=${opts.size}:fontcolor=${opts.color}@${alpha}${enable}`;
+  return `drawtext=${fontArg(font)}:text='${esc(opts.text)}':x=${opts.x}:y=${opts.y}:fontsize=${opts.size}:fontcolor=${opts.color}@${alpha}:expansion=none${enable}`;
 }
 
 /* ── graph ─────────────────────────────────────────────────────── */
@@ -397,7 +396,7 @@ function animatedText(opts: {
   const font = opts.bold === false ? REG_FONT : BOLD_FONT;
   const y = `${opts.y}+44*(1-min(1,max(0,(t-${opts.start})/0.5)))`;
   const alpha = `min(1,max(0,(t-${opts.start})/0.38))`;
-  return `drawtext=${fontArg(font)}:text='${esc(opts.text)}':x=${opts.x}:y='${y}':fontsize=${opts.size}:fontcolor=${opts.color}:alpha='${alpha}':shadowcolor=black@0.55:shadowx=0:shadowy=3:enable='between(t,${opts.start},${opts.dur})'`;
+  return `drawtext=${fontArg(font)}:text='${esc(opts.text)}':x=${opts.x}:y='${y}':fontsize=${opts.size}:fontcolor=${opts.color}:expansion=none:alpha='${alpha}':shadowcolor=black@0.55:shadowx=0:shadowy=3:enable='between(t,${opts.start},${opts.dur})'`;
 }
 
 function sceneFilter(index: number, input: RenderInput, sceneDur: number) {
@@ -445,11 +444,12 @@ function sceneFilter(index: number, input: RenderInput, sceneDur: number) {
     }));
     lines.forEach((line, i) =>
       parts.push(animatedText({
-        text: line, x: 64, y: 700 + i * 112, size: 90,
-        color: "0xF6F8EF", start: 0.12 + i * 0.13, dur,
+        text: line, x: 64, y: 1080 + i * 112, size: 90,
+        color: /\bRs\b/.test(line) ? lime : "0xF6F8EF",
+        start: 0.12 + i * 0.13, dur,
       }))
     );
-    const after = 700 + lines.length * 112;
+    const after = 1080 + lines.length * 112;
     parts.push(
       `drawbox=x=64:y=${after + 18}:w=170:h=6:color=${lime}@0.95:t=fill:enable='between(t,0.55,${dur})'`
     );
@@ -478,7 +478,8 @@ function sceneFilter(index: number, input: RenderInput, sceneDur: number) {
     offerLines.forEach((line, i) =>
       parts.push(animatedText({
         text: line, x: 116, y: top + 92 + i * 82, size: 64,
-        color: "0xF6F8EF", start: 0.3 + i * 0.1, dur,
+        color: /\bRs\b/.test(line) ? lime : "0xF6F8EF",
+        start: 0.3 + i * 0.1, dur,
       }))
     );
     subLines.forEach((line, i) =>

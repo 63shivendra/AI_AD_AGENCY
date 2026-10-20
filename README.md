@@ -34,7 +34,7 @@ npm run dev
 
 Open <http://localhost:3000>. The default passcode is **`kanpur2026`**.
 
-On a fresh database the seeded ads have no media yet. Go to **Settings → Pre-render reels** once: it renders a real MP4 + poster for every seeded ad in the background (~1 minute), so Studio's Recent work and the client libraries show playable reels instead of covers. `Reset demo data` re-seeds and re-renders automatically.
+On a fresh database the seeded ads have no media yet. Go to **Settings → Pre-render reels** once: it renders a real MP4 + poster for every seeded ad in the background (~2–3 minutes for 18 reels), so Studio's Recent work and the client libraries show playable reels instead of covers. `Reset demo data` re-seeds and re-renders automatically.
 
 > Change `AGENCY_PASSCODE` and `NEXT_PUBLIC_AGENCY_NAME` before you show this to a client. The branding name appears in the sidebar, portal, funnel footer and printed standee.
 
