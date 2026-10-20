@@ -43,7 +43,7 @@ const SCRIPT = [
   {
     t: "1:00",
     title: "Render it",
-    body: "Hit Render. The progress bar moves, then a real MP4 plays in the dashboard. Usually 2–3 seconds. This is the moment that closes.",
+    body: "Hit Render. The progress bar moves, then a real MP4 with photo scenes and music plays in the dashboard. Usually 10–20 seconds. This is the moment that closes.",
   },
   {
     t: "1:40",

@@ -50,6 +50,8 @@ async function processRender(jobId: string) {
         brandName: ad.client.name,
         area: ad.client.area,
         phone: ad.client.phone,
+        slug: ad.client.slug,
+        niche: ad.client.niche,
         scenes,
         durationSec: ad.durationSec,
       });
@@ -60,6 +62,8 @@ async function processRender(jobId: string) {
         brandName: ad.client.name,
         area: ad.client.area,
         phone: ad.client.phone,
+        slug: ad.client.slug,
+        niche: ad.client.niche,
         scenes,
         durationSec: ad.durationSec,
       });
@@ -128,6 +132,8 @@ async function renderOnModal(input: {
   brandName: string;
   area: string;
   phone: string;
+  slug?: string;
+  niche?: string;
   scenes: RenderScene[];
   durationSec: number;
 }): Promise<JobResult> {

@@ -533,7 +533,7 @@ export function Studio({
                 <p className="mt-3 text-[11px] text-dim">
                   {render.status === "FAILED"
                     ? "Render failed. Check the dev-server logs for the ffmpeg error."
-                    : "Rendering three scenes with h264. This normally finishes in 2–3 seconds on CPU."}
+                    : "Cutting three photo scenes, camera moves and the music bed with ffmpeg. This normally finishes in 10–20 seconds on CPU."}
                 </p>
               </div>
             ) : (
@@ -560,7 +560,7 @@ export function Studio({
                   <p className="mt-1 text-[15px] font-semibold">{concepts.find((c) => c.adId === render.adId)?.hook}</p>
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {[
-                      ["Format", "1080 × 1920 · 24fps"],
+                      ["Format", "1080 × 1920 · 30fps"],
                       ["Duration", "12s"],
                       ["Engine", render.result?.engine ?? "ffmpeg"],
                       ["Render time", `${((render.result?.ms ?? 0) / 1000).toFixed(1)}s`],

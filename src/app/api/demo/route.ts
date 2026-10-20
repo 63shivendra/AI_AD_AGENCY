@@ -36,6 +36,8 @@ async function queueWarmup() {
           brandName: ad.client.name,
           area: ad.client.area,
           phone: ad.client.phone,
+          slug: ad.client.slug,
+          niche: ad.client.niche,
           scenes: script.scenes ?? [],
           durationSec: ad.durationSec,
         });

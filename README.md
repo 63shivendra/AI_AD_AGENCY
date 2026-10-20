@@ -11,7 +11,7 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind v4, Prisma 6 and ffmpeg
 | Piece | Status | Notes |
 | --- | --- | --- |
 | Hinglish ad copy | **Live** with `GEMINI_API_KEY` | Falls back to a deterministic playbook writer with no key — demos still work offline. |
-| Video render | **Live** | Bundled `ffmpeg-static` writes a real 12s, 1080×1920, 24fps MP4 + JPG poster into `public/renders`. Optional Modal GPU worker via `RENDER_DRIVER=modal`. |
+| Video render | **Live** | Bundled `ffmpeg-static` cuts a real 12s, 1080×1920, 30fps MP4 + JPG poster: three photo scenes, Ken Burns camera moves, animated Hinglish captions, crossfades and a licensed music bed. Optional Modal GPU worker via `RENDER_DRIVER=modal`. |
 | QR codes | **Live** | Generated server-side with `qrcode`; no external image service. Auto-detects your LAN IP so phones on the same Wi-Fi can scan. |
 | WhatsApp funnel | **Live** | Real `wa.me` deep links with pre-filled Hinglish messages; leads stored in the DB. |
 | CRM / leads / billing | **Live** | Prisma + SQLite locally, Postgres/Supabase in production. |
@@ -120,6 +120,16 @@ public/renders/       generated MP4 + JPG files
 - **Social proof is grounded.** Each client has a `proof` field (e.g. "42 NEET selections last year") that the copywriter is allowed to use. The model is explicitly told never to invent patient/customer counts; without a proof value the fallback says "Seedha owner se baat".
 - **Price hooks never duplicate the price.** If the offer title already contains `₹199`, the price-led hook uses the title as-is.
 
+### Reel assets
+
+Each reel is built from three pieces, all local so a demo works without internet:
+
+- **Photos** — `public/assets/reels/<client-slug>/01.jpg`, `02.jpg` … The renderer uses the first two (Ken Burns zoom + pan). Drop real client photos in that folder; `_default` is used when a client has none.
+- **Music** — `public/assets/music/{bright,elegant,driving,playful}.mp3`. The track is picked from the client's niche and mixed under the reel with fade-in/out.
+- **Copy** — the ad's three scenes (Hook / Offer / CTA) from Studio.
+
+The bundled demo photos are Pexels stock and the music is Kevin MacLeod (CC BY 4.0). See `public/assets/CREDITS.md`. Swap both for client-owned footage and licensed music before a commercial campaign.
+
 ---
 
 ## Environment variables
@@ -181,3 +191,5 @@ Next.js 16 on Cloudflare Workers needs the OpenNext adapter plus a Prisma driver
 ## Credits
 
 Demo data is fictional but modelled on real Kanpur business categories, areas and price points. Font rendering for ffmpeg uses Arial on Windows and DejaVu Sans on Linux/macOS; the renderer falls back to ffmpeg's default font if neither exists.
+
+Demo reel photos are from [Pexels](https://www.pexels.com/license/) (free to use, no attribution required). Demo music is by [Kevin MacLeod](https://incompetech.com) and licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); track list and source links are in `public/assets/CREDITS.md`. Replace both with client-owned assets before publishing paid campaigns.
