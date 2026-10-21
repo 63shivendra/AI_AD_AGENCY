@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Check, Copy, Loader2, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Check, Copy, Sparkles, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MESSAGES = [

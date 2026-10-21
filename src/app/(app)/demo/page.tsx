@@ -212,7 +212,7 @@ export default async function DemoKit({
               Pehla ad aaj hi ready ho jayega.”
             </p>
             <p className="mt-2 text-[9.5px] text-faint">
-              Never open with “website banwana hai?” — that's a ₹2,500 race to the bottom.
+              Never open with “website banwana hai?” — that&apos;s a ₹2,500 race to the bottom.
             </p>
           </Card>
           <Card className="p-4">

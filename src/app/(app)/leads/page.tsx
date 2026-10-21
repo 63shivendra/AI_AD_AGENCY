@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Inbox, ArrowUpRight } from "lucide-react";
 import { getAllLeads, getClients } from "@/lib/data";
 import { inr, timeAgo } from "@/lib/format";
-import { Card, Empty, SectionHead, StatusPill } from "@/components/ui";
+import { Card, Empty, SectionHead } from "@/components/ui";
 import { LeadStatusSelect } from "@/components/actions";
 
 export const dynamic = "force-dynamic";

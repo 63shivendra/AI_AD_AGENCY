@@ -1,7 +1,15 @@
 import { db } from "@/lib/db";
-import { renderVideo, type RenderScene } from "./video";
+import type { RenderScene } from "./video";
+import { renderAd } from "./select";
 
-type JobResult = { videoUrl: string | null; posterUrl: string | null; ms: number; engine: string };
+type JobResult = {
+  videoUrl: string | null;
+  posterUrl: string | null;
+  ms: number;
+  engine: string;
+  presenterKind?: string;
+  bytes?: number;
+};
 
 let chain: Promise<unknown> = Promise.resolve();
 
@@ -43,7 +51,11 @@ async function processRender(jobId: string) {
 
   let result: JobResult;
   try {
-    if (process.env.RENDER_DRIVER === "modal" && process.env.MODAL_RENDER_URL) {
+    if (
+      ad.format !== "TREND" &&
+      process.env.RENDER_DRIVER === "modal" &&
+      process.env.MODAL_RENDER_URL
+    ) {
       result = await renderOnModal({
         id: ad.id,
         brandColor: ad.client.brandColor,
@@ -56,22 +68,14 @@ async function processRender(jobId: string) {
         durationSec: ad.durationSec,
       });
     } else {
-      const local = await renderVideo({
-        id: ad.id,
-        brandColor: ad.client.brandColor,
-        brandName: ad.client.name,
-        area: ad.client.area,
-        phone: ad.client.phone,
-        slug: ad.client.slug,
-        niche: ad.client.niche,
-        scenes,
-        durationSec: ad.durationSec,
-      });
+      const local = await renderAd(ad);
       result = {
         videoUrl: local.videoUrl,
         posterUrl: local.posterUrl,
         ms: local.ms,
         engine: local.engine,
+        presenterKind: local.presenterKind,
+        bytes: local.bytes,
       };
     }
   } catch (err) {
@@ -90,12 +94,16 @@ async function processRender(jobId: string) {
 
   await db.job.update({ where: { id: jobId }, data: { progress: 88 } });
 
+  const nextScript = { ...(JSON.parse(ad.script || "{}") as Record<string, unknown>) };
+  if (result.presenterKind) nextScript.presenterKind = result.presenterKind;
+
   await db.ad.update({
     where: { id: ad.id },
     data: {
       status: "READY",
       videoUrl: result.videoUrl,
       posterUrl: result.posterUrl,
+      script: JSON.stringify(nextScript),
       thumbTone: ad.thumbTone,
     },
   });
@@ -108,7 +116,7 @@ async function processRender(jobId: string) {
       result: JSON.stringify({
         ...result,
         poster: result.posterUrl,
-        sizeMb: result.videoUrl ? Number((result.ms / 1000).toFixed(1)) : 0,
+        sizeMb: result.bytes ? Number((result.bytes / 1_000_000).toFixed(1)) : 0,
       }),
       finishedAt: new Date(),
     },

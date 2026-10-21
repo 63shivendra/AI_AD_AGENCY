@@ -7,6 +7,11 @@ import { LeadForm } from "@/components/lead-form";
 
 export const dynamic = "force-dynamic";
 
+/** Stable server-side window for the demo counters. */
+function daysAgo(days: number) {
+  return new Date(Date.now() - days * 86400000);
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const client = await db.client.findUnique({ where: { slug } });
@@ -26,7 +31,7 @@ export default async function FunnelPage({ params }: { params: Promise<{ slug: s
 
   const [leadCount, reviewCount, ratingAgg] = await Promise.all([
     db.lead.count({
-      where: { clientId: client.id, createdAt: { gte: new Date(Date.now() - 7 * 86400000) } },
+      where: { clientId: client.id, createdAt: { gte: daysAgo(7) } },
     }),
     db.review.count({ where: { clientId: client.id } }),
     db.review.aggregate({ where: { clientId: client.id }, _avg: { rating: true } }),

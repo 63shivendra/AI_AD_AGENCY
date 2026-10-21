@@ -232,7 +232,16 @@ export default async function ClientDetail({
           ) : (
             <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {c.ads.map((ad) => {
-                const script = JSON.parse(ad.script || "{}") as { angle?: string };
+                const script = JSON.parse(ad.script || "{}") as {
+                  angle?: string;
+                  presenterKind?: string;
+                };
+                const presenter =
+                  script.presenterKind === "owner"
+                    ? "owner clip"
+                    : script.presenterKind === "avatar"
+                      ? "AI avatar"
+                      : "stock narrator";
                 return (
                   <Card key={ad.id} className="overflow-hidden p-2.5">
                     <AdFrame
@@ -246,7 +255,14 @@ export default async function ClientDetail({
                     />
                     <div className="mt-2 space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <StatusPill status={ad.status} />
+                        <div className="flex items-center gap-1.5">
+                          <StatusPill status={ad.status} />
+                          {ad.format === "TREND" && (
+                            <span className="rounded-full border border-violet/25 bg-violet/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet">
+                              trend
+                            </span>
+                          )}
+                        </div>
                         <span className={cn("text-[10.5px] font-bold", scoreTone(ad.hitScore))}>
                           CTR {ad.predictedCtr}%
                         </span>
@@ -254,6 +270,7 @@ export default async function ClientDetail({
                       <p className="line-clamp-2 text-[11.5px] font-semibold leading-snug">{ad.hook}</p>
                       <p className="text-[10px] text-faint">
                         {script.angle ?? ad.platform} · {dateShort(ad.createdAt)} · {ad.variants.length} hooks
+                        {ad.format === "TREND" && ` · ${presenter}`}
                       </p>
                       <div className="flex items-center justify-between border-t border-line pt-1.5">
                         <span className="text-[10px] text-faint">

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Wallet, ArrowUpRight, CreditCard, TrendingDown, Check, Zap } from "lucide-react";
+import { Wallet, ArrowUpRight, CreditCard, TrendingDown, Check } from "lucide-react";
 import { getBillingData } from "@/lib/data";
 import { inr } from "@/lib/format";
 import { Card, SectionHead, StatusPill, Kpi } from "@/components/ui";
@@ -7,6 +7,14 @@ import { Sparkline } from "@/components/charts";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+
+/** Next debit is a demo rhythm, stable for a single render pass. */
+function nextDebitDate(index: number) {
+  return new Date(Date.now() + ((index % 4) + 2) * 86400000).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+  });
+}
 
 const PLANS = [
   {
@@ -107,10 +115,7 @@ export default async function BillingPage() {
                     <td className="px-3 py-2.5 text-[11px] text-faint">
                       {c.status === "PROSPECT"
                         ? "not onboarded"
-                        : new Date(Date.now() + ((i % 4) + 2) * 86400000).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                          })}
+                        : nextDebitDate(i)}
                     </td>
                     <td className="px-4 py-2.5 text-right">
                       <StatusPill status={c.status === "ACTIVE" ? "ACTIVE" : c.status} />

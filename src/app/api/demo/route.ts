@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
 import { db } from "@/lib/db";
-import { renderVideo } from "@/lib/render/video";
+import { renderAd } from "@/lib/render/select";
 
 export const maxDuration = 120;
 
@@ -26,27 +26,17 @@ async function queueWarmup() {
 
   void (async () => {
     for (const ad of ads) {
-      const script = JSON.parse(ad.script || "{}") as {
-        scenes?: { label: string; text: string; sub?: string }[];
-      };
       try {
-        const out = await renderVideo({
-          id: ad.id,
-          brandColor: ad.client.brandColor,
-          brandName: ad.client.name,
-          area: ad.client.area,
-          phone: ad.client.phone,
-          slug: ad.client.slug,
-          niche: ad.client.niche,
-          scenes: script.scenes ?? [],
-          durationSec: ad.durationSec,
-        });
+        const out = await renderAd(ad);
         if (out.videoUrl || out.posterUrl) {
+          const nextScript = { ...(JSON.parse(ad.script || "{}") as Record<string, unknown>) };
+          if (out.presenterKind) nextScript.presenterKind = out.presenterKind;
           await db.ad.update({
             where: { id: ad.id },
             data: {
               videoUrl: out.videoUrl,
               posterUrl: out.posterUrl,
+              script: JSON.stringify(nextScript),
             },
           });
         }

@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const FILTERS = [
   { key: "all", label: "All" },
   { key: "reels", label: "Reels" },
+  { key: "trend", label: "Trend" },
   { key: "drafts", label: "Drafts" },
   { key: "published", label: "Published" },
 ] as const;
@@ -23,15 +24,25 @@ export default async function AdLibraryPage({
   const ads = await getAdLibrary();
 
   const reels = ads.filter((a) => a.videoUrl);
+  const trend = ads.filter((a) => a.format === "TREND");
   const drafts = ads.filter((a) => a.status === "DRAFT");
   const published = ads.filter((a) => a.status === "PUBLISHED");
 
   const shown =
-    filter === "reels" ? reels : filter === "drafts" ? drafts : filter === "published" ? published : ads;
+    filter === "reels"
+      ? reels
+      : filter === "trend"
+        ? trend
+        : filter === "drafts"
+          ? drafts
+          : filter === "published"
+            ? published
+            : ads;
 
   const counts: Record<string, number> = {
     all: ads.length,
     reels: reels.length,
+    trend: trend.length,
     drafts: drafts.length,
     published: published.length,
   };
@@ -92,7 +103,16 @@ export default async function AdLibraryPage({
       ) : (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {shown.map((ad) => {
-            const script = JSON.parse(ad.script || "{}") as { angle?: string };
+            const script = JSON.parse(ad.script || "{}") as {
+              angle?: string;
+              presenterKind?: string;
+            };
+            const presenter =
+              script.presenterKind === "owner"
+                ? "owner clip"
+                : script.presenterKind === "avatar"
+                  ? "AI avatar"
+                  : "stock narrator";
             return (
               <Card key={ad.id} className="overflow-hidden p-2.5">
                 <AdFrame
@@ -106,7 +126,14 @@ export default async function AdLibraryPage({
                 />
                 <div className="mt-2 space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <StatusPill status={ad.status} />
+                    <div className="flex items-center gap-1.5">
+                      <StatusPill status={ad.status} />
+                      {ad.format === "TREND" && (
+                        <span className="rounded-full border border-violet/25 bg-violet/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet">
+                          trend
+                        </span>
+                      )}
+                    </div>
                     <span className={cn("text-[10.5px] font-bold", scoreTone(ad.hitScore))}>
                       CTR {ad.predictedCtr}%
                     </span>
@@ -118,6 +145,7 @@ export default async function AdLibraryPage({
                     </Link>
                     {" · "}
                     {script.angle ?? ad.platform} · {dateShort(ad.createdAt)}
+                    {ad.format === "TREND" && ` · ${presenter}`}
                   </p>
                   <div className="flex items-center justify-between border-t border-line pt-1.5">
                     <span className="text-[10px] text-faint">

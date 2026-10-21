@@ -6,6 +6,15 @@ import { inr, waLink, timeAgo } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
+/** Stable server-side windows for the portal counters. */
+function daysAgo(days: number) {
+  return new Date(Date.now() - days * 86400000);
+}
+
+function daysFromNow(days: number) {
+  return new Date(Date.now() + days * 86400000);
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const client = await db.client.findUnique({ where: { slug } });
@@ -24,7 +33,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
   });
   if (!client) notFound();
 
-  const since = new Date(Date.now() - 30 * 86400000);
+  const since = daysAgo(30);
   const [leads30, reviews30, won, viewsAgg] = await Promise.all([
     db.lead.count({ where: { clientId: client.id, createdAt: { gte: since } } }),
     db.review.count({ where: { clientId: client.id, createdAt: { gte: since } } }),
@@ -202,7 +211,7 @@ export default async function PortalPage({ params }: { params: Promise<{ slug: s
               {client.status === "ACTIVE" ? (
                 <>
                   Next debit {inr(client.monthlyFee)} on{" "}
-                  {new Date(Date.now() + 12 * 86400000).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  {daysFromNow(12).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                 </>
               ) : client.status === "PAUSED" ? (
                 <>Funnel paused — clear AutoPay to resume</>

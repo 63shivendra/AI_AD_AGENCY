@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { getOverview, rangeStart } from "@/lib/data";
 import { inr, num, timeAgo, scoreTone } from "@/lib/format";
-import { Avatar, Card, Delta, HealthBar, Kpi, SectionHead, StatusPill, Empty } from "@/components/ui";
+import { Avatar, Card, HealthBar, Kpi, SectionHead, StatusPill, Empty } from "@/components/ui";
 import { Sparkline } from "@/components/charts";
 import { MetricChart } from "@/components/metric-chart";
 import { cn } from "@/lib/utils";

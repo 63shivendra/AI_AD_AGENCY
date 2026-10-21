@@ -34,6 +34,7 @@ const CLIENTS = [
       { hook: "Swaroop Nagar mein 6 mahine se daant ka dard?", title: "Toothache — same-day relief", score: 91, ctr: 2.9, roas: 4.2, status: "PUBLISHED", spend: 8400, leads: 61, revenue: 168000, views: 41200 },
       { hook: "₹199 mein full checkup — X-ray included", title: "₹199 checkup offer", score: 86, ctr: 2.4, roas: 3.1, status: "PUBLISHED", spend: 6100, leads: 38, revenue: 96000, views: 28400 },
       { hook: "Braces ki EMI ₹2,499 se shuru", title: "Braces EMI hook", score: 74, ctr: 1.7, roas: 2.2, status: "FATIGUED", spend: 5200, leads: 14, revenue: 42000, views: 33100 },
+      { hook: "3 signs ignore mat karo — ₹199 full checkup", title: "Trend reel — 3 signs", score: 94, ctr: 3.4, roas: 4.8, status: "READY", spend: 0, leads: 0, revenue: 0, views: 0, format: "TREND" },
     ],
   },
   {
@@ -389,6 +390,7 @@ async function main() {
     // ── Ads + variants + daily metrics ──────────────────────────
     for (let a = 0; a < c.ads.length; a++) {
       const ad = c.ads[a];
+      const isTrend = ad.format === "TREND";
       const created = new Date(now - (28 - a * 7) * day);
       const script = {
         scenes: [
@@ -396,6 +398,20 @@ async function main() {
           { label: "Offer", text: c.offers[0].title, sub: c.offers[0].description.slice(0, 78) },
           { label: "CTA", text: "Aaj hi WhatsApp karo", sub: `+91 ${c.phone}` },
         ],
+        ...(isTrend
+          ? {
+              angle: "Trend — 3 signs",
+              trend: "dental",
+              voiceScript:
+                "Swaroop Nagar walo, teen signs ignore mat karo. Sensitivity, bleeding, ya dard? 199 mein full checkup, X-ray free. WhatsApp karo.",
+              offerText: "Rs 199 FULL CHECKUP + X-RAY",
+              price: "Rs 199",
+              doctor: "DR. ANIL SHARMA",
+              proof: "12+ YEARS",
+              presenterMode: "auto",
+              presenterKind: "stock",
+            }
+          : {}),
       };
       const record = await db.ad.create({
         data: {
@@ -403,12 +419,13 @@ async function main() {
           title: ad.title,
           hook: ad.hook,
           script: JSON.stringify(script),
+          format: ad.format || "REEL",
           platform: a % 3 === 2 ? "TIKTOK" : "META",
           status: ad.status,
           hitScore: ad.score,
           predictedCtr: ad.ctr,
           predictedRoas: ad.roas,
-          durationSec: 12,
+          durationSec: isTrend ? 13 : 12,
           views: ad.views,
           clicks: Math.round(ad.views * (ad.ctr / 100)),
           leads: ad.leads,

@@ -17,7 +17,7 @@ import {
   Copy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { inr, scoreTone } from "@/lib/format";
+import { inr } from "@/lib/format";
 import { AdFrame, Avatar, Card, ScoreRing, SectionHead, StatusPill } from "@/components/ui";
 
 type Concept = {
@@ -107,6 +107,7 @@ export function Studio({
   }, []);
 
   // Switching client must not leave the previous client's concepts on screen.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setConcepts([]);
     setEngine(null);
@@ -115,6 +116,7 @@ export function Studio({
     setStatuses({});
     setPublishMsg("");
   }, [clientId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     if (!render) return;
@@ -315,6 +317,7 @@ export function Studio({
             {[
               { icon: Wand2, t: "Script + hooks", d: "Gemini / playbook", on: true },
               { icon: Film, t: "1080p render", d: "ffmpeg · h264", on: true },
+              { icon: Sparkles, t: "Trend reels", d: "owner / avatar / stock", on: true },
               { icon: Zap, t: "Publish", d: "Meta sandbox", on: false },
             ].map((s) => (
               <div key={s.t} className="flex items-center gap-2">
@@ -338,7 +341,11 @@ export function Studio({
             <Sparkles className="h-3 w-3" /> Demo tip
           </p>
           <p className="mt-1 text-[10.5px] leading-relaxed text-dim">
-            Pick Sharma Dental → Generate → Render the top concept. The MP4 appears in ~2 seconds, no GPU needed.
+            Pick Sharma Dental → Generate → Render the top concept. The seeded trend reel is in{" "}
+            <Link href="/ads?filter=trend" className="font-semibold text-violet hover:underline">
+              Ads → Trend
+            </Link>
+            : real footage, beat cuts, Hinglish VO.
           </p>
         </div>
       </div>

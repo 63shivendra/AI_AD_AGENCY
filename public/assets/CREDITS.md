@@ -31,3 +31,29 @@ Tracks by [Kevin MacLeod](https://incompetech.com), licensed under [Creative Com
 | `music/playful.mp3` | "Sneaky Snitch" |
 
 Attribution: "Music by Kevin MacLeod (incompetech.com), licensed under CC BY 4.0."
+
+## Trend footage — Mixkit License
+
+Free-to-use stock footage from [Mixkit](https://mixkit.co/free-stock-video/). The people in these clips are actors/stock models, not the demo clients' staff. Replace them with client-owned footage before publishing.
+
+| File | Mixkit clip ID |
+| --- | --- |
+| `trend/dental/stock/33328.mp4` | 33328 |
+| `trend/dental/stock/12137.mp4` | 12137 |
+| `trend/dental/stock/12140.mp4` | 12140 |
+| `trend/dental/stock/8975.mp4` | 8975 |
+
+## Trend music + SFX — Mixkit License
+
+| File | Source |
+| --- | --- |
+| `trend/music/hiphop-02.mp3` | Mixkit — “Hip Hop 02” by Lily J |
+| `trend/sfx/whoosh.mp3` | Mixkit free sound effect |
+| `trend/sfx/impact.mp3` | Mixkit free sound effect |
+| `trend/sfx/pop.mp3` | Mixkit free sound effect |
+
+The Hinglish voiceover (`trend/dental/vo.mp3`) was generated with Microsoft Edge TTS (`hi-IN-SwaraNeural`, +22%) for the demo. Replace it with the owner's real voice for a paid campaign.
+
+## Fonts — SIL Open Font License
+
+`Anton-Regular.ttf` and `Mukta-ExtraBold.ttf` are from Google Fonts, licensed under the SIL Open Font License 1.1.
