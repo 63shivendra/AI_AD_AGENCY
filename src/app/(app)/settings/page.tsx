@@ -1,5 +1,5 @@
 import { Check, CircleSlash, Database, HardDrive, KeyRound, Server } from "lucide-react";
-import { integrations, agencyName } from "@/lib/env";
+import { integrations, agencyName, presenterOptions } from "@/lib/env";
 import { Card, SectionHead, StatusPill } from "@/components/ui";
 import { DemoControls } from "@/components/demo-controls";
 
@@ -44,6 +44,43 @@ export default function SettingsPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="p-4">
+        <SectionHead
+          title="Trend presenter options"
+          subtitle="Every trend reel can use any of these — pick one per ad in the Ads library"
+        />
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {presenterOptions().map((o) => (
+            <div key={o.key} className="rounded-lg border border-line bg-panel2 px-3 py-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold">{o.name}</p>
+                  <p className="text-[10px] leading-snug text-faint">{o.role}</p>
+                </div>
+                <span
+                  className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${
+                    o.live
+                      ? "border-mint/25 bg-mint/10 text-mint"
+                      : "border-amber/25 bg-amber/10 text-amber"
+                  }`}
+                >
+                  {o.live ? "ready" : "needs setup"}
+                </span>
+              </div>
+              <p className="mt-2 text-[10.5px] leading-relaxed text-dim">{o.detail}</p>
+              <p className="mt-2 break-words rounded-md border border-line bg-ink px-2 py-1 font-mono text-[9.5px] text-faint">
+                {o.env}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[10.5px] leading-relaxed text-faint">
+          <span className="font-mono text-dim">auto</span> resolves owner clip → HeyGen avatar → stock
+          narrator. Owner and avatar carry their own lip-synced audio; the stock path is a narrator, not
+          lip-sync, and is labelled that way in the library.
+        </p>
+      </Card>
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card className="p-4 xl:col-span-2">

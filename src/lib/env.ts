@@ -105,4 +105,78 @@ export function integrations(): Integration[] {
   ];
 }
 
+export type PresenterOption = {
+  key: "owner" | "avatar" | "stock";
+  name: string;
+  role: string;
+  live: boolean;
+  detail: string;
+  env: string;
+};
+
+export function ownerClipSlugs(): string[] {
+  const dir = join(process.cwd(), "public", "assets", "presenters");
+  try {
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .filter((slug) => existsSync(join(dir, slug, "owner.mp4")));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The three trend-reel presenter paths, most realistic first. `auto` on a reel
+ * resolves owner → avatar → stock; each reel also has an explicit picker in the
+ * ad library.
+ */
+export function presenterOptions(): PresenterOption[] {
+  const slugs = ownerClipSlugs();
+  const heygen = Boolean(
+    process.env.HEYGEN_API_KEY && process.env.HEYGEN_AVATAR_ID && process.env.HEYGEN_VOICE_ID
+  );
+  return [
+    {
+      key: "owner",
+      name: "Owner clip",
+      role: "Real person, real voice — most realistic",
+      live: slugs.length > 0,
+      detail:
+        slugs.length > 0
+          ? `Found: ${slugs.join(", ")} — renderer uses the owner's own face and audio`
+          : "Drop a vertical, 15–30s clip to switch this on for a client",
+      env: "public/assets/presenters/<client-slug>/owner.mp4",
+    },
+    {
+      key: "avatar",
+      name: "AI avatar · HeyGen",
+      role: "Synthetic lip-synced presenter + b-roll PiP",
+      live: heygen,
+      detail: heygen
+        ? "Avatar + Hindi voice connected — lip-synced, with circular PiP over b-roll"
+        : "Add key, avatar ID and a Hindi voice ID to switch this on",
+      env: "HEYGEN_API_KEY · HEYGEN_AVATAR_ID · HEYGEN_VOICE_ID",
+    },
+    {
+      key: "stock",
+      name: "Stock narrator",
+      role: "Offline fallback — real footage, no lip-sync",
+      live: true,
+      detail: "Always available; labelled honestly as a narrator, never as the client's staff",
+      env: "public/assets/trend/<client>/stock/*.mp4",
+    },
+  ];
+}
+
+/** Which presenter options are usable right now (owner is per-client). */
+export function presenterAvailability(slug?: string) {
+  const heygen = Boolean(
+    process.env.HEYGEN_API_KEY && process.env.HEYGEN_AVATAR_ID && process.env.HEYGEN_VOICE_ID
+  );
+  const owner = slug ? ownerClipSlugs().includes(slug) : ownerClipSlugs().length > 0;
+  return { owner, avatar: heygen, stock: true };
+}
+
 export const agencyName = () => process.env.NEXT_PUBLIC_AGENCY_NAME || "Growth Engine";

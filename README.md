@@ -156,6 +156,8 @@ Presenter resolution is `TREND_PRESENTER=auto` (the default):
 
 Set `presenter.pip` in the manifest to `"avatar"` (default, avatar only), `"all"` (avatar + owner) or `"none"` to control the b-roll PiP.
 
+**Choosing in the app.** Every trend reel has a **Presenter** picker on its card in **Ads → Trend** (and the client's Ads tab). It lists all three paths plus **auto**; paths that aren't usable yet are disabled with the reason (`no clip`, `needs key`), and picking one saves `presenterMode` on the ad and re-renders the reel (~40s). **Settings → Trend presenter options** shows live status for each path.
+
 The trend ad is seeded as `format: "TREND"` on Sharma Dental, so it appears under **Ads → Trend** and in the client's Ads tab. A missing manifest, failed avatar call or missing clip automatically falls back to the cinematic renderer, so the demo never ends with a broken ad.
 
 ---

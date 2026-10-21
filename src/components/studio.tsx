@@ -317,7 +317,7 @@ export function Studio({
             {[
               { icon: Wand2, t: "Script + hooks", d: "Gemini / playbook", on: true },
               { icon: Film, t: "1080p render", d: "ffmpeg · h264", on: true },
-              { icon: Sparkles, t: "Trend reels", d: "owner / avatar / stock", on: true },
+              { icon: Sparkles, t: "Trend reels", d: "owner / avatar / stock · switchable", on: true },
               { icon: Zap, t: "Publish", d: "Meta sandbox", on: false },
             ].map((s) => (
               <div key={s.t} className="flex items-center gap-2">
@@ -345,7 +345,8 @@ export function Studio({
             <Link href="/ads?filter=trend" className="font-semibold text-violet hover:underline">
               Ads → Trend
             </Link>
-            : real footage, beat cuts, Hinglish VO.
+            : real footage, beat cuts, Hinglish VO — switch its presenter (owner clip / AI avatar /
+            stock) right on the card.
           </p>
         </div>
       </div>

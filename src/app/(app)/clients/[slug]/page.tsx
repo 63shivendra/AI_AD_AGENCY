@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { AreaChart } from "@/components/charts";
 import { AdFrame, Avatar, Card, HealthBar, SectionHead, StatusPill, LiveLink, Empty } from "@/components/ui";
 import { CopyButton, LeadStatusSelect, MarkPostedButton, PublishButton } from "@/components/actions";
+import { PresenterPicker } from "@/components/presenter-picker";
+import { presenterAvailability } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -235,6 +237,7 @@ export default async function ClientDetail({
                 const script = JSON.parse(ad.script || "{}") as {
                   angle?: string;
                   presenterKind?: string;
+                  presenterMode?: string;
                 };
                 const presenter =
                   script.presenterKind === "owner"
@@ -283,6 +286,14 @@ export default async function ClientDetail({
                         </span>
                         <PublishButton adId={ad.id} status={ad.status} />
                       </div>
+                      {ad.format === "TREND" && (
+                        <PresenterPicker
+                          adId={ad.id}
+                          mode={script.presenterMode ?? "auto"}
+                          resolved={presenter}
+                          availability={presenterAvailability(c.slug)}
+                        />
+                      )}
                     </div>
                   </Card>
                 );

@@ -4,6 +4,8 @@ import { getAdLibrary } from "@/lib/data";
 import { dateShort, scoreTone } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { AdFrame, Card, Empty, SectionHead, StatusPill } from "@/components/ui";
+import { PresenterPicker } from "@/components/presenter-picker";
+import { presenterAvailability } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +108,7 @@ export default async function AdLibraryPage({
             const script = JSON.parse(ad.script || "{}") as {
               angle?: string;
               presenterKind?: string;
+              presenterMode?: string;
             };
             const presenter =
               script.presenterKind === "owner"
@@ -173,6 +176,14 @@ export default async function AdLibraryPage({
                       </Link>
                     )}
                   </div>
+                  {ad.format === "TREND" && (
+                    <PresenterPicker
+                      adId={ad.id}
+                      mode={script.presenterMode ?? "auto"}
+                      resolved={presenter}
+                      availability={presenterAvailability(ad.client.slug)}
+                    />
+                  )}
                 </div>
               </Card>
             );
