@@ -258,9 +258,14 @@ export default async function ClientDetail({
                         <div className="flex items-center gap-1.5">
                           <StatusPill status={ad.status} />
                           {ad.format === "TREND" && (
-                            <span className="rounded-full border border-violet/25 bg-violet/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet">
-                              trend
-                            </span>
+                            <>
+                              <span className="rounded-full border border-violet/25 bg-violet/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet">
+                                trend
+                              </span>
+                              <span className="rounded-full border border-lime/25 bg-lime/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-lime">
+                                pro edit
+                              </span>
+                            </>
                           )}
                         </div>
                         <span className={cn("text-[10.5px] font-bold", scoreTone(ad.hitScore))}>

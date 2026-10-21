@@ -56,7 +56,7 @@ export function integrations(): Integration[] {
       detail: owner
         ? "Owner clip found — real audio, real person"
         : heygen
-          ? "Avatar + Hindi voice configured — lip-synced"
+          ? "Avatar + Hindi voice configured — lip-synced, with b-roll PiP"
           : "Stock actor + Hinglish narrator — no lip-sync",
       env: owner ? "public/assets/presenters/" : heygen ? "HEYGEN_AVATAR_ID" : "HEYGEN_API_KEY",
     },

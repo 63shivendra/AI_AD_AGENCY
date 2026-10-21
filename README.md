@@ -12,7 +12,7 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind v4, Prisma 6 and ffmpeg
 | --- | --- | --- |
 | Hinglish ad copy | **Live** with `GEMINI_API_KEY` | Falls back to a deterministic playbook writer with no key — demos still work offline. |
 | Video render | **Live** | Bundled `ffmpeg-static` cuts a real 12s, 1080×1920, 30fps MP4 + JPG poster: three photo scenes, Ken Burns camera moves, animated Hinglish captions, crossfades and a licensed music bed. Optional Modal GPU worker via `RENDER_DRIVER=modal`. |
-| Trend reels | **Live** | Five full-bleed shots, cuts every 4 beats at 95.7 BPM, kinetic Hinglish type, price sticker, progress bar, Hinglish VO, music + SFX. Presenter mode is hybrid: **owner clip > HeyGen avatar > stock actor**. The stock path is a narrator, not lip-sync; owner/avatar paths carry their own audio. |
+| Trend reels | **Live** | Five full-bleed shots cut on a 95.7 BPM beat grid, virtual camera moves, kinetic Hinglish captions (pop / slide / brand plate / underline), teal-orange grade with bloom + grain + lens character, cut-synced sound design (whoosh, impact, pop, riser), music ducked under the voice and an animated WhatsApp CTA. Presenter mode is hybrid: **owner clip > HeyGen avatar > stock actor**. On the avatar path a circular talking-head PiP sits over the b-roll. The stock path is a narrator, not lip-sync; owner/avatar paths carry their own audio. |
 | QR codes | **Live** | Generated server-side with `qrcode`; no external image service. Auto-detects your LAN IP so phones on the same Wi-Fi can scan. |
 | WhatsApp funnel | **Live** | Real `wa.me` deep links with pre-filled Hinglish messages; leads stored in the DB. |
 | CRM / leads / billing | **Live** | Prisma + SQLite locally, Postgres/Supabase in production. |
@@ -35,7 +35,7 @@ npm run dev
 
 Open <http://localhost:3000>. The default passcode is **`kanpur2026`**.
 
-On a fresh database the seeded ads have no media yet. Go to **Settings → Pre-render reels** once: it renders a real MP4 + poster for every seeded ad in the background (~3–4 minutes for 19 reels; the Sharma Dental trend reel takes ~20 seconds), so Studio's Recent work and the client libraries show playable reels instead of covers. `Reset demo data` re-seeds and re-renders automatically.
+On a fresh database the seeded ads have no media yet. Go to **Settings → Pre-render reels** once: it renders a real MP4 + poster for every seeded ad in the background (~3–5 minutes for 19 reels; the Sharma Dental trend reel takes ~40 seconds), so Studio's Recent work and the client libraries show playable reels instead of covers. `Reset demo data` re-seeds and re-renders automatically.
 
 > Change `AGENCY_PASSCODE` and `NEXT_PUBLIC_AGENCY_NAME` before you show this to a client. The branding name appears in the sidebar, portal, funnel footer and printed standee.
 
@@ -134,18 +134,27 @@ The bundled demo photos are Pexels stock and the music is Kevin MacLeod (CC BY 4
 
 ### Trend reels + the hybrid presenter
 
-Trend reels use a separate, more editorial pipeline in `src/lib/render/trend.ts`:
+Trend reels use a separate, more editorial pipeline in `src/lib/render/trend.ts`. The edit is deliberately "senior pro" rather than a slideshow:
 
-- **Manifest** — `public/assets/trend/<name>/manifest.json` defines the five shots, trim points, focus-X crops, Hinglish text, transition order, music and presenter timing. The seeded Sharma Dental reel uses `dental/manifest.json`.
+- **Pacing** — five shots whose durations are chosen so every crossfade lands on a 95.7 BPM beat (cuts at 2.51 / 5.02 / 7.52 / 10.03s). Transition order is mixed (`smoothleft`, `zoomin`, `hblur`, `circleopen`) with white impact flashes on the hook→problem and offer→proof cuts.
+- **Camera** — each shot gets a virtual move (`push-in`, `pull-out`, `pan-left`, `pan-right`, `handheld`) by upscaling the cropped frame and animating the crop window, so nothing sits still.
+- **Kinetic captions** — word groups pop / slide in over the voice, with brand plates behind price and CTA words, animated underlines and per-word type sizes. Captions are Hinglish and token-filled (`{{price}}`, `{{doctor}}`, `{{offer}}`, …).
+- **Grade** — teal-orange `colorbalance` + S-curve `curves`, `eq`, `unsharp`, subtle `rgbashift` lens character, then a global screen-blend bloom, film grain and vignette.
+- **Sound design** — a whoosh leads every cut, an impact lands on the beat, pops accent key words, a riser lifts the last shot into the CTA, and the music is side-chain ducked under the voice before `loudnorm` (−14 LUFS) and a limiter.
+- **End card** — animated WhatsApp CTA with a pulsing brand button, offer, phone, area and doctor/proof line.
+
+- **Manifest** — `public/assets/trend/<name>/manifest.json` defines the shots, trim points, focus-X crops, per-shot `move`, per-caption timing/style, transition order, `edit` grade/sfx block, music and presenter timing. The seeded Sharma Dental reel uses `dental/manifest.json` (`version: 2`); older v1 manifests still render (legacy `texts`, `flashAt`).
 - **Footage** — `public/assets/trend/dental/stock/*.mp4`, licensed Mixkit clips. Replace with the client's own clinic/patient/doctor footage in the same slots.
 - **Voice** — `dental/vo.mp3` (female Hinglish, Edge TTS) mixed at +22%. No runtime Python/TTS dependency is needed for the demo.
-- **Music/SFX** — `public/assets/trend/music/hiphop-02.mp3` (Mixkit) and `whoosh`, `impact`, `pop`. Cuts land on a 95.7 BPM beat grid; the audio is limited to −1.5 dB and loudness-normalised to −14 LUFS.
+- **Music/SFX** — `public/assets/trend/music/hiphop-02.mp3` (Mixkit) plus `whoosh`, `impact`, `pop` and a synthesized `riser`. Cuts land on the beat grid and the mix is loudness-normalised to −14 LUFS with a limiter.
 
 Presenter resolution is `TREND_PRESENTER=auto` (the default):
 
 1. **Owner clip** — drop a vertical, 15–30s recording at `public/assets/presenters/<client-slug>/owner.mp4`. The renderer uses the owner's own audio and cuts the hook/CTA from that clip. This is the most realistic and the only path that is guaranteed authentic.
-2. **HeyGen avatar** — set `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID`. The renderer generates a 1080×1920 lip-synced avatar from the same Hinglish script, uses its audio, and cuts the hook/CTA from it.
+2. **HeyGen avatar** — set `HEYGEN_API_KEY`, `HEYGEN_AVATAR_ID` and `HEYGEN_VOICE_ID` (optional `HEYGEN_VOICE_SPEED`). The renderer generates a 1080×1920 lip-synced avatar from the same Hinglish script, uses its audio, cuts the hook/CTA from it, and drops a circular brand-ringed talking-head PiP over the b-roll so the host stays present while the footage runs.
 3. **Stock actor + narrator** — the offline fallback. Real footage and a real Hinglish voice, but the presenter's lips are not synced. The UI labels it **stock narrator** so the demo never overclaims.
+
+Set `presenter.pip` in the manifest to `"avatar"` (default, avatar only), `"all"` (avatar + owner) or `"none"` to control the b-roll PiP.
 
 The trend ad is seeded as `format: "TREND"` on Sharma Dental, so it appears under **Ads → Trend** and in the client's Ads tab. A missing manifest, failed avatar call or missing clip automatically falls back to the cinematic renderer, so the demo never ends with a broken ad.
 
