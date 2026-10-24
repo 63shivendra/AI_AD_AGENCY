@@ -6,7 +6,7 @@
   "transitions": ["smoothleft", "zoomin", "hblur", "circleopen"],
   "scrim": "scrim.png",
   "music": "../music/hiphop-02.mp3",
-  "musicVolume": 0.32,
+  "musicVolume": 0.5,
   "voiceScript": "Swaroop Nagar walo, teen signs ignore mat karo. Sensitivity, bleeding, ya dard? 199 mein full checkup, X-ray free. WhatsApp karo.",
   "edit": {
     "grade": "teal-orange",

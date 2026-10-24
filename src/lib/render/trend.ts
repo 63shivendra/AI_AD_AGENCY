@@ -135,6 +135,8 @@ type TrendManifest = {
   scrim?: string;
   music?: string;
   musicVolume?: number;
+  /** Skip this many seconds into the track so the reel starts on a full groove, not an intro. */
+  musicStart?: number;
   voiceScript?: string;
   edit?: EditSpec;
   presenter: PresenterSpec;
@@ -851,20 +853,21 @@ async function muxAudio(opts: {
   );
   lines.push(`[voRaw]asplit=2[vo][voKey];`);
 
+  const musicStart = Math.max(0, manifest.musicStart ?? 0);
   lines.push(
     hasMusic
-      ? `[2:a]atrim=0:${totalStr},aresample=44100,volume=${
-          manifest.musicVolume ?? 0.32
-        },afade=t=in:st=0:d=0.35,afade=t=out:st=${Math.max(
+      ? `[2:a]atrim=${musicStart.toFixed(3)}:${(musicStart + total).toFixed(3)},asetpts=PTS-STARTPTS,aresample=44100,volume=${
+          manifest.musicVolume ?? 0.5
+        },afade=t=in:st=0:d=0.25,afade=t=out:st=${Math.max(
           0,
-          total - 1.1
-        ).toFixed(3)}:d=1.1[musicIn];`
+          total - 1.0
+        ).toFixed(3)}:d=1.0[musicIn];`
       : `[2:a]volume=0[musicIn];`
   );
   lines.push(
     edit.sfx === false
       ? `[musicIn]anull[music];`
-      : `[musicIn][voKey]sidechaincompress=threshold=0.05:ratio=5:attack=8:release=280:makeup=1[music];`
+      : `[musicIn][voKey]sidechaincompress=threshold=0.12:ratio=2.2:attack=12:release=380:makeup=1[music];`
   );
 
   const nCuts = switchTimes.length;
@@ -876,7 +879,7 @@ async function muxAudio(opts: {
       const delay = Math.max(0, Math.round((t - 0.18) * 1000));
       lines.push(
         `[w${i}]atrim=0:1.2,volume=${
-          hasWhoosh && edit.sfx !== false ? 0.3 : 0
+          hasWhoosh && edit.sfx !== false ? 0.22 : 0
         },adelay=${delay}:all=1[ww${i}];`
       );
       mixLabels.push(`[ww${i}]`);
@@ -884,7 +887,7 @@ async function muxAudio(opts: {
 
     lines.push(`[4:a]asplit=${nCuts}${switchTimes.map((_, i) => `[i${i}]`).join("")};`);
     switchTimes.forEach((t, i) => {
-      const vol = i === 0 || i === 2 ? 0.5 : 0.32;
+      const vol = i === 0 || i === 2 ? 0.38 : 0.26;
       lines.push(
         `[i${i}]atrim=0:2.5,volume=${
           hasImpact && edit.sfx !== false ? vol : 0
@@ -895,22 +898,34 @@ async function muxAudio(opts: {
   }
 
   if (pops.length > 0) {
-    lines.push(`[5:a]asplit=${pops.length}${pops.map((_, i) => `[p${i}]`).join("")};`);
-    pops.forEach((t, i) => {
-      lines.push(
-        `[p${i}]atrim=0:0.3,volume=${
-          hasPop && edit.sfx !== false ? 0.45 : 0
-        },adelay=${Math.max(0, Math.round(t * 1000))}:all=1[pop${i}];`
-      );
-      mixLabels.push(`[pop${i}]`);
-    });
+    // One accent per shot, not a blip on every caption. Fourteen pops in 13s
+    // reads as a metronome rather than sound design.
+    const shotStarts = [0, ...switchTimes];
+    const accents = shotStarts
+      .map((start, i) => {
+        const end = i + 1 < shotStarts.length ? shotStarts[i + 1] : total;
+        return pops.find((t) => t >= start - 0.01 && t < end);
+      })
+      .filter((t): t is number => typeof t === "number");
+
+    if (accents.length > 0) {
+      lines.push(`[5:a]asplit=${accents.length}${accents.map((_, i) => `[p${i}]`).join("")};`);
+      accents.forEach((t, i) => {
+        lines.push(
+          `[p${i}]atrim=0:0.3,volume=${
+            hasPop && edit.sfx !== false ? 0.16 : 0
+          },adelay=${Math.max(0, Math.round(t * 1000))}:all=1[pop${i}];`
+        );
+        mixLabels.push(`[pop${i}]`);
+      });
+    }
   }
 
   if (edit.riser !== false && nCuts > 0) {
     const riserStart = Math.max(0, prevShotStart - 1.2);
     lines.push(
       `[6:a]atrim=0:1.4,volume=${
-        hasRiser ? 0.42 : 0
+        hasRiser ? 0.3 : 0
       },adelay=${Math.round(riserStart * 1000)}:all=1[riser];`
     );
     mixLabels.push("[riser]");
