@@ -106,11 +106,22 @@ export function buildBeats(input: UgcInput): UgcBeat[] {
   const proof = input.proof?.trim();
   const doctor = input.doctor?.trim();
 
+  const proofHasDoctor =
+    Boolean(proof && doctor) && proof!.toLowerCase().includes(doctor!.toLowerCase());
   const proofLine = proof
-    ? `${doctor ? `${doctor}, ` : ""}${proof}`
+    ? proofHasDoctor
+      ? proof
+      : `${doctor ? `${doctor}, ` : ""}${proof}`
     : doctor
       ? `${doctor} se khud baat karo.`
       : "Wahi clinic, wahi team, bina rush.";
+
+  const proofCaptions: [string, string] = proof
+    ? [
+        doctor || "TRUSTED",
+        proofHasDoctor ? proof.replace(doctor!, "").replace(/^[,·\s]+/, "") || proof : proof,
+      ]
+    : ["TRUSTED IN", area.toUpperCase()];
 
   return [
     {
@@ -137,7 +148,7 @@ export function buildBeats(input: UgcInput): UgcBeat[] {
     {
       role: "proof",
       line: proofLine,
-      captions: proof ? [doctor || "TRUSTED", proof] : ["TRUSTED IN", area.toUpperCase()],
+      captions: proofCaptions,
       visual: "she smiles confidently and nods at the camera, relaxed shoulders",
     },
     {
