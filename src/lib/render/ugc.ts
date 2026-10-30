@@ -11,6 +11,7 @@ import {
 import { dirname, join } from "node:path";
 import ffmpegPath from "ffmpeg-static";
 import { generateImage, generateVideo, higgsfieldConfigured } from "./higgsfield";
+import { comfyClip, comfyConfigured, comfyImage } from "./comfy";
 import { renderTrendVideo, type TrendRenderResult } from "./trend";
 
 /**
@@ -90,8 +91,23 @@ function probeDuration(file: string): Promise<number> {
   });
 }
 
-export function higgsfieldReady() {
-  return higgsfieldConfigured();
+export function genProvider(): "higgsfield" | "comfy" {
+  return (process.env.AI_VIDEO_PROVIDER || "higgsfield").toLowerCase() === "comfy"
+    ? "comfy"
+    : "higgsfield";
+}
+
+/** True when the selected generation backend is usable. */
+export function aiReady() {
+  return genProvider() === "comfy" ? comfyConfigured() : higgsfieldConfigured();
+}
+
+async function generateStill(
+  provider: "higgsfield" | "comfy",
+  opts: { prompt: string; file: string }
+): Promise<{ url: string; file: string }> {
+  if (provider === "comfy") return comfyImage(opts);
+  return generateImage({ ...opts, aspectRatio: "9:16" });
 }
 
 function tidy(s: string) {
@@ -172,8 +188,9 @@ function actorPromptFor(input: UgcInput) {
         ? "a bright classroom with bookshelves behind her"
         : "a clean modern local business interior";
 
-  return tidy(`a friendly Indian woman in her early 30s, ${setting},
-    candid selfie video framing, natural window light, realistic skin texture, subtle makeup,
+  return tidy(`medium shot, waist-up selfie video still, a friendly Indian woman in her early 30s wearing a teal kurta,
+    full upper body visible from the waist up, looking straight into the lens and talking, mouth slightly open,
+    ${setting} visible behind her, natural window light, realistic skin texture, subtle makeup,
     shot on an iPhone front camera, vertical 9:16, no text, no logo, no watermark`);
 }
 
@@ -212,7 +229,9 @@ function buildManifest(opts: { beats: UgcBeat[]; duration: number; musicStart: n
   const xfade = 0.18;
   const pad = 0.35;
   const shotDur = (duration + pad + (n - 1) * xfade) / n;
-  const moves = ["push-in", "handheld", "pan-right", "pull-out", "push-in"] as const;
+  // The generated clips already contain motion. A virtual camera on top crops
+  // heads and pushes the frame onto backgrounds, so let the AI footage move.
+  const moves = ["static", "static", "static", "static", "static"] as const;
 
   return {
     version: 2,
@@ -273,9 +292,12 @@ function buildManifest(opts: { beats: UgcBeat[]; duration: number; musicStart: n
 
 export async function renderUgcAd(input: UgcInput): Promise<UgcResult> {
   const started = Date.now();
-  if (!higgsfieldConfigured()) {
+  const provider = genProvider();
+  if (!aiReady()) {
     throw new Error(
-      "Higgsfield is not configured. Set HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET."
+      provider === "comfy"
+        ? "ComfyUI is not running. Start it and set COMFY_URL (default http://127.0.0.1:8188)."
+        : "Higgsfield is not configured. Set HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET."
     );
   }
 
@@ -292,6 +314,8 @@ export async function renderUgcAd(input: UgcInput): Promise<UgcResult> {
     meta = {};
   }
 
+  const actorFile = join(dir, "actor.png");
+  const clinicFile = join(dir, "clinic.png");
   const clipFiles = beats.map((_, i) => join(dir, `beat-${i}.mp4`));
   const missing = clipFiles.filter(
     (f) => input.force || !existsSync(f) || statSync(f).size < 200_000
@@ -301,23 +325,33 @@ export async function renderUgcAd(input: UgcInput): Promise<UgcResult> {
   if (missing.length > 0) {
     input.onProgress?.(24);
 
-    if (input.force || !meta.actorUrl) {
-      const still = await generateImage({
+    const actorMissing =
+      input.force ||
+      !existsSync(actorFile) ||
+      statSync(actorFile).size < 20_000 ||
+      (provider === "higgsfield" && !meta.actorUrl);
+
+    if (actorMissing) {
+      const still = await generateStill(provider, {
         prompt: actorPromptFor(input),
-        file: join(dir, "actor.jpg"),
-        aspectRatio: "9:16",
+        file: actorFile,
       });
-      meta.actorUrl = still.url;
+      if (still.url) meta.actorUrl = still.url;
     }
 
     const needsProduct = beats.some((b) => b.role === "product");
-    if (needsProduct && (input.force || !meta.clinicUrl)) {
-      const clinic = await generateImage({
+    const clinicMissing =
+      input.force ||
+      !existsSync(clinicFile) ||
+      statSync(clinicFile).size < 20_000 ||
+      (provider === "higgsfield" && !meta.clinicUrl);
+
+    if (needsProduct && clinicMissing) {
+      const clinic = await generateStill(provider, {
         prompt: clinicPromptFor(input),
-        file: join(dir, "clinic.jpg"),
-        aspectRatio: "9:16",
+        file: clinicFile,
       });
-      meta.clinicUrl = clinic.url;
+      if (clinic.url) meta.clinicUrl = clinic.url;
     }
 
     writeFileSync(metaFile, JSON.stringify(meta), "utf8");
@@ -327,16 +361,23 @@ export async function renderUgcAd(input: UgcInput): Promise<UgcResult> {
       const file = clipFiles[i];
       if (input.force || !existsSync(file) || statSync(file).size < 200_000) {
         const beat = beats[i];
-        const imageUrl =
-          beat.role === "product" && meta.clinicUrl ? meta.clinicUrl : meta.actorUrl;
-        if (!imageUrl) throw new Error("Higgsfield image URL missing; re-run with force");
+        const isProduct = beat.role === "product";
+        const stillPrompt = isProduct ? clinicPromptFor(input) : actorPromptFor(input);
+        const prompt = tidy(
+          `static camera, fixed framing, no zoom, no camera movement, ${beat.visual}, ${stillPrompt}`
+        );
 
-        await generateVideo({
-          prompt: tidy(beat.visual),
-          imageUrl,
-          file,
-          duration: 5,
-        });
+        if (provider === "comfy") {
+          await comfyClip({
+            prompt,
+            imageFile: isProduct ? clinicFile : actorFile,
+            file,
+          });
+        } else {
+          const imageUrl = isProduct ? meta.clinicUrl : meta.actorUrl;
+          if (!imageUrl) throw new Error("Higgsfield image URL missing; re-run with force");
+          await generateVideo({ prompt: tidy(beat.visual), imageUrl, file, duration: 5 });
+        }
       }
       input.onProgress?.(38 + Math.round(((i + 1) / beats.length) * 26));
     }
@@ -376,6 +417,6 @@ export async function renderUgcAd(input: UgcInput): Promise<UgcResult> {
 
   return {
     ...rendered,
-    engine: `Higgsfield UGC · 5 beats · stock edit · ${((Date.now() - started) / 1000).toFixed(1)}s`,
+    engine: `${provider === "comfy" ? "ComfyUI" : "Higgsfield"} UGC · 5 beats · stock edit · ${((Date.now() - started) / 1000).toFixed(1)}s`,
   };
 }

@@ -13,7 +13,7 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind v4, Prisma 6 and ffmpeg
 | Hinglish ad copy | **Live** with `GEMINI_API_KEY` | Falls back to a deterministic playbook writer with no key — demos still work offline. |
 | Video render | **Live** | Bundled `ffmpeg-static` cuts a real 12s, 1080×1920, 30fps MP4 + JPG poster: three photo scenes, Ken Burns camera moves, animated Hinglish captions, crossfades and a licensed music bed. Optional Modal GPU worker via `RENDER_DRIVER=modal`. |
 | Trend reels | **Live** | Five full-bleed shots cut on a 95.7 BPM beat grid, virtual camera moves, kinetic Hinglish captions (pop / slide / brand plate / underline), teal-orange grade with bloom + grain + lens character, cut-synced sound design (whoosh, impact, pop, riser), music ducked under the voice and an animated WhatsApp CTA. Presenter mode is hybrid: **owner clip > HeyGen avatar > stock actor**. On the avatar path a circular talking-head PiP sits over the b-roll. The stock path is a narrator, not lip-sync; owner/avatar paths carry their own audio. |
-| AI UGC ads | **Live** with `HIGGSFIELD_API_KEY_ID` + `HIGGSFIELD_API_KEY_SECRET` | Generates a five-beat ad (hook → problem → product → proof → CTA): two Soul stills, five image-to-video clips, an Edge TTS Hinglish voiceover and a clean, native-style edit. Without a key the button is disabled with the reason — it never fakes a generated actor. |
+| AI UGC ads | **Live** with Higgsfield or local ComfyUI | Generates a five-beat ad (hook → problem → product → proof → CTA): two stills, five image-to-video clips, an Edge TTS Hinglish voiceover and a clean, native-style edit. `AI_VIDEO_PROVIDER=higgsfield` needs an API key; `AI_VIDEO_PROVIDER=comfy` runs SDXL + LTX-Video on this machine for free. Without either backend the button is disabled with the reason — it never fakes a generated actor. |
 | QR codes | **Live** | Generated server-side with `qrcode`; no external image service. Auto-detects your LAN IP so phones on the same Wi-Fi can scan. |
 | WhatsApp funnel | **Live** | Real `wa.me` deep links with pre-filled Hinglish messages; leads stored in the DB. |
 | CRM / leads / billing | **Live** | Prisma + SQLite locally, Postgres/Supabase in production. |
@@ -161,9 +161,16 @@ Set `presenter.pip` in the manifest to `"avatar"` (default, avatar only), `"all"
 
 The trend ad is seeded as `format: "TREND"` on Sharma Dental, so it appears under **Ads → Trend** and in the client's Ads tab. A missing manifest, failed avatar call or missing clip automatically falls back to the cinematic renderer, so the demo never ends with a broken ad.
 
-### AI UGC ads (Higgsfield)
+### AI UGC ads (Higgsfield or local ComfyUI)
 
-This is the "AI ad" genre from the reference workflow — a real-looking person speaking to camera, quick jump cuts, native captions and a CTA — built from generated footage instead of stock clips. Code: `src/lib/render/higgsfield.ts` (API client) and `src/lib/render/ugc.ts` (pipeline).
+This is the "AI ad" genre from the reference workflow — a real-looking person speaking to camera, quick jump cuts, native captions and a CTA — built from generated footage instead of stock clips. Code: `src/lib/render/ugc.ts` (pipeline), `higgsfield.ts` (paid API) and `comfy.ts` (local open-source).
+
+**Pick a backend** with `AI_VIDEO_PROVIDER`:
+
+| Value | Backend | Cost | Notes |
+| --- | --- | --- | --- |
+| `higgsfield` | Soul + Kling 2.5 Turbo Pro | Paid per generation | Best motion/identity. Needs key ID + secret. |
+| `comfy` | SDXL + LTX-Video 2B (local ComfyUI) | Free | Slower, softer. No key, works offline. |
 
 **The five beats.** `buildBeats()` writes a grounded Hinglish script in the order the reference uses:
 
@@ -177,18 +184,32 @@ This is the "AI ad" genre from the reference workflow — a real-looking person 
 
 **Pipeline.**
 
-1. **Stills** — Higgsfield Soul, 9:16 / 1080p: one consistent actor (same face for every beat) plus one clinic/product interior.
-2. **Clips** — image-to-video from those stills, five 5s generations, one per beat. The still fixes identity; the prompt only describes the motion.
+1. **Stills** — one consistent actor (same face for every beat) plus one clinic/product interior. Higgsfield Soul 9:16 / 1080p, or SDXL 768×1344 locally.
+2. **Clips** — image-to-video from those stills, five clips, one per beat. The still fixes identity; the prompt only describes the motion. Higgsfield uses Kling; local mode uses LTX-Video.
 3. **Voice** — Edge TTS (`msedge-tts`, free, no key) reads the script; the pipeline probes the real audio length.
 4. **Edit** — writes a `manifest.json` next to the clips and hands it to the trend renderer with a clean grade: no grain, vignette, chroma shift, SFX or riser, brand captions in the lower third and a low music bed under the voice.
 
-**Models.** The defaults are the confirmed public endpoints: `/higgsfield-ai/soul/standard` and `/kling-video/v2.5-turbo/pro/image-to-video`. Seedance / Nano Banana are exposed per account in the [Higgsfield console](https://console.higgsfield.ai); paste the path it shows into `HIGGSFIELD_VIDEO_MODEL` / `HIGGSFIELD_IMAGE_MODEL` — no code change.
+**Local open-source mode (free).**
 
-**Cost + caching.** One ad = 2 images + 5 videos. Generations are cached under `public/assets/trend/ugc/<adId>/` (`meta.json` + clips), so re-renders and presenter/grade changes are free. The UI asks for confirmation before spending and shows live progress. A failure is surfaced as an error — it never silently downgrades to a stock reel.
+1. Download [ComfyUI portable](https://github.com/comfyanonymous/ComfyUI/releases) and extract it.
+2. Put the models in place:
+   - `ComfyUI/models/checkpoints/sd_xl_base_1.0.safetensors` — [SDXL base](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)
+   - `ComfyUI/models/checkpoints/ltx-video-2b-v0.9.5.safetensors` — [LTX-Video 2B](https://huggingface.co/Lightricks/LTX-Video)
+   - `ComfyUI/models/text_encoders/t5xxl_fp8_e4m3fn.safetensors` — [T5-XXL fp8](https://huggingface.co/comfyanonymous/flux_text_encoders)
+3. Start `run_nvidia_gpu.bat`, then set in `.env`:
+   ```ini
+   AI_VIDEO_PROVIDER="comfy"
+   COMFY_URL="http://127.0.0.1:8188"
+   ```
+4. Click **Client → Ads → AI UGC ad**. The app submits the workflow to ComfyUI, polls `/history`, downloads the result and edits it.
 
-**Honest limitation.** Kling animates the actor's mouth but does not lip-sync to the Hindi voiceover, so the voice reads as a narrator over the actor's performance. For true lip-sync use the HeyGen avatar path or point `HIGGSFIELD_VIDEO_MODEL` at a Seedance/audio-capable model when it appears in your console.
+On a 6 GB laptop GPU (RTX 3050) expect ~1–2 min per still and ~4–8 min per 5s clip at 512×896, so roughly 30–45 min per ad. Raise `COMFY_VIDEO_WIDTH`/`COMFY_VIDEO_HEIGHT` for sharper clips at the cost of time. SDXL and LTX are open-weight (OpenRAIL++ / OpenRAIL-M); check their licences before commercial use.
 
-**In the app.** Open a client → **Ads** → **AI UGC ad**. Without keys the button is disabled (`needs Higgsfield key`). The result lands in the library under **Ads → AI UGC** with `ai ugc` / `5 beats` badges.
+**Cost + caching.** Generations are cached under `public/assets/trend/ugc/<adId>/` (`meta.json` + clips), so re-renders and grade/presenter changes are free. The UI asks for confirmation before a paid Higgsfield run and shows live progress. A failure is surfaced as an error — it never silently downgrades to a stock reel.
+
+**Honest limitation.** Kling and LTX animate the actor's mouth but do not lip-sync to the Hindi voiceover, so the voice reads as a narrator over the actor's performance. For true lip-sync use the HeyGen avatar path, or add Wav2Lip/LatentSync in front of the edit.
+
+**In the app.** Open a client → **Ads** → **AI UGC ad**. Without a configured backend the button is disabled (`needs AI backend`). The result lands in the library under **Ads → AI UGC** with `ai ugc` / `5 beats` badges.
 
 ---
 
@@ -209,6 +230,8 @@ TREND_PRESENTER="auto"            # auto | owner | avatar | stock
 HEYGEN_API_KEY=""                 # optional lip-synced avatar
 HEYGEN_AVATAR_ID=""
 HEYGEN_VOICE_ID=""
+AI_VIDEO_PROVIDER="higgsfield"    # higgsfield | comfy (local, free)
+COMFY_URL="http://127.0.0.1:8188"
 HIGGSFIELD_API_KEY_ID=""           # optional AI UGC ads (5-beat Higgsfield pipeline)
 HIGGSFIELD_API_KEY_SECRET=""
 HIGGSFIELD_IMAGE_MODEL="/higgsfield-ai/soul/standard"

@@ -31,7 +31,7 @@ export function UgcButton({
   async function start() {
     if (!live) return;
     const ok = window.confirm(
-      "Generate an AI UGC ad?\n\nThis runs 2 image + 5 video generations on Higgsfield (paid credits) and takes 3–8 minutes. The clips are cached, so re-renders are free.\n\nContinue?"
+      "Generate an AI UGC ad?\n\nThis runs 2 stills + 5 image-to-video clips and takes a few minutes (longer on a local GPU). The clips are cached, so re-renders are free.\n\nContinue?"
     );
     if (!ok) return;
 
@@ -93,7 +93,7 @@ export function UgcButton({
         type="button"
         onClick={start}
         disabled={!live || running}
-        title={live ? "Generate a 5-beat AI UGC ad" : "Add HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET"}
+        title={live ? "Generate a 5-beat AI UGC ad" : "Configure an AI backend in Settings"}
         className={cn(
           compact ? "btn-ghost h-8 px-2.5 text-[11.5px]" : "btn-ghost h-9 px-3 text-[12px]",
           "border-violet/40 text-violet hover:border-violet hover:bg-violet/10",
@@ -108,7 +108,7 @@ export function UgcButton({
         {running ? `Generating ${progress}%` : "AI UGC ad"}
       </button>
       {!live && (
-        <span className="text-[9.5px] text-faint">needs Higgsfield key</span>
+        <span className="text-[9.5px] text-faint">needs AI backend</span>
       )}
       {note && (
         <span

@@ -851,7 +851,10 @@ async function muxAudio(opts: {
       ? `[1:a]atrim=0:${totalStr},aresample=44100,${voiceFilter}volume=${presenter.voiceGain},adelay=${presenter.voiceDelay}:all=1,apad=whole_dur=${totalStr}[voRaw];`
       : `[1:a]volume=0[voRaw];`
   );
-  lines.push(`[voRaw]asplit=2[vo][voKey];`);
+  // voKey drives music ducking. Without SFX there is no sidechain, and an
+  // unused asplit output makes ffmpeg fail ("Filter asplit has an
+  // unconnected output"), so only split when the key is consumed.
+  lines.push(edit.sfx === false ? `[voRaw]anull[vo];` : `[voRaw]asplit=2[vo][voKey];`);
 
   const musicStart = Math.max(0, manifest.musicStart ?? 0);
   lines.push(

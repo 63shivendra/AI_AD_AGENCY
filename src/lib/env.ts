@@ -33,6 +33,7 @@ export function integrations(): Integration[] {
   const higgsfield = Boolean(
     process.env.HIGGSFIELD_API_KEY_ID && process.env.HIGGSFIELD_API_KEY_SECRET
   );
+  const comfy = (process.env.AI_VIDEO_PROVIDER || "").toLowerCase() === "comfy";
 
   return [
     {
@@ -64,14 +65,16 @@ export function integrations(): Integration[] {
       env: owner ? "public/assets/presenters/" : heygen ? "HEYGEN_AVATAR_ID" : "HEYGEN_API_KEY",
     },
     {
-      key: "higgsfield",
-      name: "Higgsfield UGC",
+      key: "ugc",
+      name: comfy ? "ComfyUI (local)" : "Higgsfield UGC",
       role: "AI actor + image-to-video ads",
-      live: higgsfield,
-      detail: higgsfield
-        ? "Key connected — 5-beat UGC generation enabled"
-        : "Add an API key ID + secret to generate AI UGC ads",
-      env: "HIGGSFIELD_API_KEY_ID · HIGGSFIELD_API_KEY_SECRET",
+      live: comfy ? true : higgsfield,
+      detail: comfy
+        ? "Open-source SDXL + LTX-Video on this machine — free, offline"
+        : higgsfield
+          ? "Key connected — 5-beat UGC generation enabled"
+          : "Add an API key ID + secret, or switch to ComfyUI",
+      env: comfy ? "COMFY_URL" : "HIGGSFIELD_API_KEY_ID · HIGGSFIELD_API_KEY_SECRET",
     },
     {
       key: "heygen",

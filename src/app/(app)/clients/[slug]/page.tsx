@@ -46,6 +46,8 @@ export default async function ClientDetail({
   const higgsfieldLive = Boolean(
     process.env.HIGGSFIELD_API_KEY_ID && process.env.HIGGSFIELD_API_KEY_SECRET
   );
+  const aiProvider = (process.env.AI_VIDEO_PROVIDER || "higgsfield").toLowerCase();
+  const aiLive = aiProvider === "comfy" ? true : higgsfieldLive;
 
   const series = c.series;
 
@@ -221,7 +223,7 @@ export default async function ClientDetail({
             subtitle={`${c.ads.length} ads · ${c.ads.filter((a) => a.status === "PUBLISHED").length} live`}
             action={
               <div className="flex items-center gap-2">
-                <UgcButton slug={c.slug} live={higgsfieldLive} compact />
+                <UgcButton slug={c.slug} live={aiLive} compact />
                 <Link href={`/studio?client=${c.id}`} className="btn-primary h-8 px-2.5 text-[11.5px]">
                   <Sparkles className="h-3 w-3" /> New concept
                 </Link>
@@ -296,7 +298,7 @@ export default async function ClientDetail({
                       <p className="text-[10px] text-faint">
                         {script.angle ?? ad.platform} · {dateShort(ad.createdAt)} · {ad.variants.length} hooks
                         {ad.format === "TREND" && ` · ${presenter}`}
-                        {ad.format === "UGC" && " · Higgsfield 5-beat"}
+                        {ad.format === "UGC" && " · AI 5-beat"}
                       </p>
                       <div className="flex items-center justify-between border-t border-line pt-1.5">
                         <span className="text-[10px] text-faint">

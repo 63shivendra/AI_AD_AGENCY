@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { enqueueRender } from "@/lib/render";
-import { buildBeats, higgsfieldReady } from "@/lib/render/ugc";
+import { buildBeats, aiReady, genProvider } from "@/lib/render/ugc";
 
 export const maxDuration = 900;
 
@@ -14,11 +14,13 @@ export const maxDuration = 900;
 export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
-  if (!higgsfieldReady()) {
+  if (!aiReady()) {
     return NextResponse.json(
       {
         error:
-          "Higgsfield is not configured. Add HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET to .env, then restart.",
+          genProvider() === "comfy"
+            ? "ComfyUI is not available. Start it and check COMFY_URL (default http://127.0.0.1:8188)."
+            : "Higgsfield is not configured. Add HIGGSFIELD_API_KEY_ID and HIGGSFIELD_API_KEY_SECRET to .env, then restart.",
       },
       { status: 400 }
     );

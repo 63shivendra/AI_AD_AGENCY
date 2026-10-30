@@ -1,0 +1,211 @@
+{
+  "version": 2,
+  "name": "ugc-5-beat",
+  "bpm": 96,
+  "xfade": 0.18,
+  "transitions": [
+    "fade",
+    "smoothleft",
+    "fade",
+    "circleopen"
+  ],
+  "music": "../../music/hiphop-02.mp3",
+  "musicStart": 30,
+  "musicVolume": 0.22,
+  "edit": {
+    "grade": "clean",
+    "grain": 0,
+    "bloom": 0.02,
+    "chroma": false,
+    "vignette": false,
+    "sfx": false,
+    "riser": false,
+    "flashCuts": []
+  },
+  "presenter": {
+    "clip": "beat-0.mp4",
+    "voice": "vo.mp3",
+    "voiceGain": 1.12,
+    "pip": "none",
+    "stock": {
+      "start": 0,
+      "ctaStart": 0,
+      "focusX": 0.5,
+      "vertical": true,
+      "voiceGain": 1.12,
+      "delay": 120
+    }
+  },
+  "shots": [
+    {
+      "id": "hook",
+      "role": "hook",
+      "source": "beat-0.mp4",
+      "start": 0,
+      "dur": 4.41,
+      "focusX": 0.5,
+      "move": "static",
+      "captions": [
+        {
+          "text": "EK MINUTE",
+          "x": 64,
+          "y": 1218,
+          "size": 86,
+          "color": "white",
+          "start": 0.12,
+          "end": 1.15,
+          "in": "slide-up",
+          "weight": "body"
+        },
+        {
+          "text": "RUKO",
+          "x": 64,
+          "y": 1330,
+          "size": 70,
+          "color": "brand",
+          "start": 1.05,
+          "end": 4.29,
+          "in": "slide-up",
+          "weight": "body"
+        }
+      ],
+      "footer": false
+    },
+    {
+      "id": "problem",
+      "role": "broll",
+      "source": "beat-1.mp4",
+      "start": 0,
+      "dur": 4.41,
+      "focusX": 0.5,
+      "move": "static",
+      "captions": [
+        {
+          "text": "SENSITIVITY?",
+          "x": 64,
+          "y": 1218,
+          "size": 86,
+          "color": "white",
+          "start": 0.12,
+          "end": 1.15,
+          "in": "slide-up",
+          "weight": "body"
+        },
+        {
+          "text": "BLEEDING?",
+          "x": 64,
+          "y": 1330,
+          "size": 70,
+          "color": "brand",
+          "start": 1.05,
+          "end": 4.29,
+          "in": "slide-up",
+          "weight": "body"
+        }
+      ],
+      "footer": false
+    },
+    {
+      "id": "product",
+      "role": "broll",
+      "source": "beat-2.mp4",
+      "start": 0,
+      "dur": 4.41,
+      "focusX": 0.5,
+      "move": "static",
+      "captions": [
+        {
+          "text": "₹199",
+          "x": 64,
+          "y": 1218,
+          "size": 86,
+          "color": "white",
+          "start": 0.12,
+          "end": 1.15,
+          "in": "slide-up",
+          "weight": "body"
+        },
+        {
+          "text": "CHECKUP + FREE X-RAY",
+          "x": 64,
+          "y": 1330,
+          "size": 70,
+          "color": "brand",
+          "start": 1.05,
+          "end": 4.29,
+          "in": "slide-up",
+          "weight": "body"
+        }
+      ],
+      "footer": false
+    },
+    {
+      "id": "proof",
+      "role": "broll",
+      "source": "beat-3.mp4",
+      "start": 0,
+      "dur": 4.41,
+      "focusX": 0.5,
+      "move": "static",
+      "captions": [
+        {
+          "text": "Dr. Anil Sharma",
+          "x": 64,
+          "y": 1218,
+          "size": 86,
+          "color": "white",
+          "start": 0.12,
+          "end": 1.15,
+          "in": "slide-up",
+          "weight": "body"
+        },
+        {
+          "text": "12+ years",
+          "x": 64,
+          "y": 1330,
+          "size": 70,
+          "color": "brand",
+          "start": 1.05,
+          "end": 4.29,
+          "in": "slide-up",
+          "weight": "body"
+        }
+      ],
+      "footer": false
+    },
+    {
+      "id": "cta",
+      "role": "cta",
+      "source": "beat-4.mp4",
+      "start": 0,
+      "dur": 4.41,
+      "focusX": 0.5,
+      "move": "static",
+      "captions": [
+        {
+          "text": "WHATSAPP KARO",
+          "x": 64,
+          "y": 1218,
+          "size": 86,
+          "color": "white",
+          "start": 0.12,
+          "end": 1.15,
+          "in": "slide-up",
+          "weight": "body"
+        },
+        {
+          "text": "AAJ HI",
+          "x": 64,
+          "y": 1330,
+          "size": 70,
+          "color": "brand",
+          "start": 1.05,
+          "end": 4.29,
+          "in": "slide-up",
+          "weight": "body"
+        }
+      ],
+      "footer": true
+    }
+  ]
+}
