@@ -177,7 +177,7 @@ This is the "AI ad" genre from the reference workflow — a real-looking person 
 
 **Pipeline.**
 
-1. **Stills** — Higgsfield Soul, 9:16 / 2K: one consistent actor (same face for every beat) plus one clinic/product interior.
+1. **Stills** — Higgsfield Soul, 9:16 / 1080p: one consistent actor (same face for every beat) plus one clinic/product interior.
 2. **Clips** — image-to-video from those stills, five 5s generations, one per beat. The still fixes identity; the prompt only describes the motion.
 3. **Voice** — Edge TTS (`msedge-tts`, free, no key) reads the script; the pipeline probes the real audio length.
 4. **Edit** — writes a `manifest.json` next to the clips and hands it to the trend renderer with a clean grade: no grain, vignette, chroma shift, SFX or riser, brand captions in the lower third and a low music bed under the voice.

@@ -41,7 +41,7 @@ type SubmitResponse = {
   status?: string;
   request_id?: string;
   status_url?: string;
-  detail?: string;
+  detail?: unknown;
 };
 
 type MediaOutput = { url?: string };
@@ -73,7 +73,14 @@ async function submit(endpoint: string, body: unknown): Promise<SubmitResponse> 
   });
   const json = (await res.json().catch(() => ({}))) as SubmitResponse;
   if (!res.ok) {
-    throw new Error(`Higgsfield submit failed: ${res.status} ${json.detail ?? "unknown error"}`);
+    const detail = json.detail;
+    const message = typeof detail === "string" ? detail : JSON.stringify(detail ?? "unknown error");
+    if (res.status === 403 && message.includes("not_enough_credits")) {
+      throw new Error(
+        "Higgsfield account has no credits. Top up at console.higgsfield.ai, then retry."
+      );
+    }
+    throw new Error(`Higgsfield submit failed: ${res.status} ${message}`);
   }
   if (!json.status_url) throw new Error("Higgsfield submit returned no status_url");
   return json;
@@ -129,13 +136,13 @@ export async function generateImage(opts: {
   prompt: string;
   file: string;
   aspectRatio?: string;
-  resolution?: "2K" | "4K";
+  resolution?: "720p" | "1080p";
   onProgress?: (status: string) => void;
 }): Promise<GeneratedImage> {
   const submitted = await submit(IMAGE_MODEL, {
     prompt: opts.prompt,
     aspect_ratio: opts.aspectRatio ?? "9:16",
-    resolution: opts.resolution ?? "2K",
+    resolution: opts.resolution ?? "1080p",
     num_images: 1,
   });
   const done = await waitForResult(submitted.status_url!, opts.onProgress);
