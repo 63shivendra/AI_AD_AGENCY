@@ -19,6 +19,7 @@ import { AreaChart } from "@/components/charts";
 import { AdFrame, Avatar, Card, HealthBar, SectionHead, StatusPill, LiveLink, Empty } from "@/components/ui";
 import { CopyButton, LeadStatusSelect, MarkPostedButton, PublishButton } from "@/components/actions";
 import { PresenterPicker } from "@/components/presenter-picker";
+import { UgcButton } from "@/components/ugc-button";
 import { presenterAvailability } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ export default async function ClientDetail({
   const { tab = "overview" } = await searchParams;
   const c = await getClientDetail(slug);
   if (!c) notFound();
+  const higgsfieldLive = Boolean(
+    process.env.HIGGSFIELD_API_KEY_ID && process.env.HIGGSFIELD_API_KEY_SECRET
+  );
 
   const series = c.series;
 
@@ -216,9 +220,12 @@ export default async function ClientDetail({
             title="Creative library"
             subtitle={`${c.ads.length} ads · ${c.ads.filter((a) => a.status === "PUBLISHED").length} live`}
             action={
-              <Link href={`/studio?client=${c.id}`} className="btn-primary h-8 px-2.5 text-[11.5px]">
-                <Sparkles className="h-3 w-3" /> New concept
-              </Link>
+              <div className="flex items-center gap-2">
+                <UgcButton slug={c.slug} live={higgsfieldLive} compact />
+                <Link href={`/studio?client=${c.id}`} className="btn-primary h-8 px-2.5 text-[11.5px]">
+                  <Sparkles className="h-3 w-3" /> New concept
+                </Link>
+              </div>
             }
           />
           {c.ads.length === 0 ? (
@@ -270,6 +277,16 @@ export default async function ClientDetail({
                               </span>
                             </>
                           )}
+                          {ad.format === "UGC" && (
+                            <>
+                              <span className="rounded-full border border-violet/25 bg-violet/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-violet">
+                                ai ugc
+                              </span>
+                              <span className="rounded-full border border-lime/25 bg-lime/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-lime">
+                                5 beats
+                              </span>
+                            </>
+                          )}
                         </div>
                         <span className={cn("text-[10.5px] font-bold", scoreTone(ad.hitScore))}>
                           CTR {ad.predictedCtr}%
@@ -279,6 +296,7 @@ export default async function ClientDetail({
                       <p className="text-[10px] text-faint">
                         {script.angle ?? ad.platform} · {dateShort(ad.createdAt)} · {ad.variants.length} hooks
                         {ad.format === "TREND" && ` · ${presenter}`}
+                        {ad.format === "UGC" && " · Higgsfield 5-beat"}
                       </p>
                       <div className="flex items-center justify-between border-t border-line pt-1.5">
                         <span className="text-[10px] text-faint">

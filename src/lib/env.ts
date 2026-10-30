@@ -30,6 +30,9 @@ export function integrations(): Integration[] {
     process.env.HEYGEN_API_KEY && process.env.HEYGEN_AVATAR_ID && process.env.HEYGEN_VOICE_ID
   );
   const owner = hasOwnerClip();
+  const higgsfield = Boolean(
+    process.env.HIGGSFIELD_API_KEY_ID && process.env.HIGGSFIELD_API_KEY_SECRET
+  );
 
   return [
     {
@@ -59,6 +62,16 @@ export function integrations(): Integration[] {
           ? "Avatar + Hindi voice configured — lip-synced, with b-roll PiP"
           : "Stock actor + Hinglish narrator — no lip-sync",
       env: owner ? "public/assets/presenters/" : heygen ? "HEYGEN_AVATAR_ID" : "HEYGEN_API_KEY",
+    },
+    {
+      key: "higgsfield",
+      name: "Higgsfield UGC",
+      role: "AI actor + image-to-video ads",
+      live: higgsfield,
+      detail: higgsfield
+        ? "Key connected — 5-beat UGC generation enabled"
+        : "Add an API key ID + secret to generate AI UGC ads",
+      env: "HIGGSFIELD_API_KEY_ID · HIGGSFIELD_API_KEY_SECRET",
     },
     {
       key: "heygen",

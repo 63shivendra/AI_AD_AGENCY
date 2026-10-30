@@ -53,6 +53,7 @@ async function processRender(jobId: string) {
   try {
     if (
       ad.format !== "TREND" &&
+      ad.format !== "UGC" &&
       process.env.RENDER_DRIVER === "modal" &&
       process.env.MODAL_RENDER_URL
     ) {
@@ -68,7 +69,13 @@ async function processRender(jobId: string) {
         durationSec: ad.durationSec,
       });
     } else {
-      const local = await renderAd(ad);
+      const local = await renderAd(ad, {
+        onProgress: (progress) => {
+          void db.job
+            .update({ where: { id: jobId }, data: { progress: Math.min(95, progress) } })
+            .catch(() => undefined);
+        },
+      });
       result = {
         videoUrl: local.videoUrl,
         posterUrl: local.posterUrl,

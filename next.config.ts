@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
-  serverExternalPackages: ["ffmpeg-static", "@prisma/client", "prisma"],
+  serverExternalPackages: ["ffmpeg-static", "@prisma/client", "prisma", "msedge-tts"],
   turbopack: {
     rules: {
       "*.css": {

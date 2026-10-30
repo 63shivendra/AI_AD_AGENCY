@@ -13,6 +13,7 @@ const FILTERS = [
   { key: "all", label: "All" },
   { key: "reels", label: "Reels" },
   { key: "trend", label: "Trend" },
+  { key: "ugc", label: "AI UGC" },
   { key: "drafts", label: "Drafts" },
   { key: "published", label: "Published" },
 ] as const;
@@ -27,6 +28,7 @@ export default async function AdLibraryPage({
 
   const reels = ads.filter((a) => a.videoUrl);
   const trend = ads.filter((a) => a.format === "TREND");
+  const ugc = ads.filter((a) => a.format === "UGC");
   const drafts = ads.filter((a) => a.status === "DRAFT");
   const published = ads.filter((a) => a.status === "PUBLISHED");
 
@@ -35,16 +37,19 @@ export default async function AdLibraryPage({
       ? reels
       : filter === "trend"
         ? trend
-        : filter === "drafts"
-          ? drafts
-          : filter === "published"
-            ? published
-            : ads;
+        : filter === "ugc"
+          ? ugc
+          : filter === "drafts"
+            ? drafts
+            : filter === "published"
+              ? published
+              : ads;
 
   const counts: Record<string, number> = {
     all: ads.length,
     reels: reels.length,
     trend: trend.length,
+    ugc: ugc.length,
     drafts: drafts.length,
     published: published.length,
   };

@@ -13,6 +13,7 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind v4, Prisma 6 and ffmpeg
 | Hinglish ad copy | **Live** with `GEMINI_API_KEY` | Falls back to a deterministic playbook writer with no key — demos still work offline. |
 | Video render | **Live** | Bundled `ffmpeg-static` cuts a real 12s, 1080×1920, 30fps MP4 + JPG poster: three photo scenes, Ken Burns camera moves, animated Hinglish captions, crossfades and a licensed music bed. Optional Modal GPU worker via `RENDER_DRIVER=modal`. |
 | Trend reels | **Live** | Five full-bleed shots cut on a 95.7 BPM beat grid, virtual camera moves, kinetic Hinglish captions (pop / slide / brand plate / underline), teal-orange grade with bloom + grain + lens character, cut-synced sound design (whoosh, impact, pop, riser), music ducked under the voice and an animated WhatsApp CTA. Presenter mode is hybrid: **owner clip > HeyGen avatar > stock actor**. On the avatar path a circular talking-head PiP sits over the b-roll. The stock path is a narrator, not lip-sync; owner/avatar paths carry their own audio. |
+| AI UGC ads | **Live** with `HIGGSFIELD_API_KEY_ID` + `HIGGSFIELD_API_KEY_SECRET` | Generates a five-beat ad (hook → problem → product → proof → CTA): two Soul stills, five image-to-video clips, an Edge TTS Hinglish voiceover and a clean, native-style edit. Without a key the button is disabled with the reason — it never fakes a generated actor. |
 | QR codes | **Live** | Generated server-side with `qrcode`; no external image service. Auto-detects your LAN IP so phones on the same Wi-Fi can scan. |
 | WhatsApp funnel | **Live** | Real `wa.me` deep links with pre-filled Hinglish messages; leads stored in the DB. |
 | CRM / leads / billing | **Live** | Prisma + SQLite locally, Postgres/Supabase in production. |
@@ -160,6 +161,35 @@ Set `presenter.pip` in the manifest to `"avatar"` (default, avatar only), `"all"
 
 The trend ad is seeded as `format: "TREND"` on Sharma Dental, so it appears under **Ads → Trend** and in the client's Ads tab. A missing manifest, failed avatar call or missing clip automatically falls back to the cinematic renderer, so the demo never ends with a broken ad.
 
+### AI UGC ads (Higgsfield)
+
+This is the "AI ad" genre from the reference workflow — a real-looking person speaking to camera, quick jump cuts, native captions and a CTA — built from generated footage instead of stock clips. Code: `src/lib/render/higgsfield.ts` (API client) and `src/lib/render/ugc.ts` (pipeline).
+
+**The five beats.** `buildBeats()` writes a grounded Hinglish script in the order the reference uses:
+
+| Beat | Job | Example |
+| --- | --- | --- |
+| Hook | Stop the scroll in the first second | "Swaroop Nagar walo, ek minute ruko." |
+| Problem | Name the pain | "Sensitivity, bleeding, ya lagatar dard?" |
+| Product | The offer, with the price | "Rs 199 mein full checkup, X-ray free." |
+| Proof | Only facts the client supplied | Doctor name + `client.proof` |
+| CTA | One action | "WhatsApp karo, slot book karo." |
+
+**Pipeline.**
+
+1. **Stills** — Higgsfield Soul, 9:16 / 2K: one consistent actor (same face for every beat) plus one clinic/product interior.
+2. **Clips** — image-to-video from those stills, five 5s generations, one per beat. The still fixes identity; the prompt only describes the motion.
+3. **Voice** — Edge TTS (`msedge-tts`, free, no key) reads the script; the pipeline probes the real audio length.
+4. **Edit** — writes a `manifest.json` next to the clips and hands it to the trend renderer with a clean grade: no grain, vignette, chroma shift, SFX or riser, brand captions in the lower third and a low music bed under the voice.
+
+**Models.** The defaults are the confirmed public endpoints: `/higgsfield-ai/soul/standard` and `/kling-video/v2.5-turbo/pro/image-to-video`. Seedance / Nano Banana are exposed per account in the [Higgsfield console](https://console.higgsfield.ai); paste the path it shows into `HIGGSFIELD_VIDEO_MODEL` / `HIGGSFIELD_IMAGE_MODEL` — no code change.
+
+**Cost + caching.** One ad = 2 images + 5 videos. Generations are cached under `public/assets/trend/ugc/<adId>/` (`meta.json` + clips), so re-renders and presenter/grade changes are free. The UI asks for confirmation before spending and shows live progress. A failure is surfaced as an error — it never silently downgrades to a stock reel.
+
+**Honest limitation.** Kling animates the actor's mouth but does not lip-sync to the Hindi voiceover, so the voice reads as a narrator over the actor's performance. For true lip-sync use the HeyGen avatar path or point `HIGGSFIELD_VIDEO_MODEL` at a Seedance/audio-capable model when it appears in your console.
+
+**In the app.** Open a client → **Ads** → **AI UGC ad**. Without keys the button is disabled (`needs Higgsfield key`). The result lands in the library under **Ads → AI UGC** with `ai ugc` / `5 beats` badges.
+
 ---
 
 ## Environment variables
@@ -179,6 +209,11 @@ TREND_PRESENTER="auto"            # auto | owner | avatar | stock
 HEYGEN_API_KEY=""                 # optional lip-synced avatar
 HEYGEN_AVATAR_ID=""
 HEYGEN_VOICE_ID=""
+HIGGSFIELD_API_KEY_ID=""           # optional AI UGC ads (5-beat Higgsfield pipeline)
+HIGGSFIELD_API_KEY_SECRET=""
+HIGGSFIELD_IMAGE_MODEL="/higgsfield-ai/soul/standard"
+HIGGSFIELD_VIDEO_MODEL="/kling-video/v2.5-turbo/pro/image-to-video"
+UGC_VOICE="hi-IN-SwaraNeural"      # Edge TTS voice, free
 META_ACCESS_TOKEN=""              # blank = sandbox publish
 META_AD_ACCOUNT_ID=""
 TIKTOK_ACCESS_TOKEN=""
